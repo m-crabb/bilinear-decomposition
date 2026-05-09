@@ -41,12 +41,12 @@ class Model(PreTrainedModel):
         return ((x @ self.left) * (x @ self.right)) @ self.down.T
 
     def tensor(self):
-        """Symmetrized CPD tensor: B[c,i,j] = 0.5 * Σ_r (L[i,r]R[j,r] + L[j,r]R[i,r]) D[c,r]."""
+        """Symmetrized factorized tensor: B[c,i,j] = 0.5 * Σ_r (L[i,r]R[j,r] + L[j,r]R[i,r]) D[c,r]."""
         t = einsum(self.down, self.left, self.right, "c r, i r, j r -> c i j")
         return 0.5 * (t + t.mT)
 
     def similarity(self, original):
-        """Cosine similarity between this CPD tensor and the original model's tensor."""
+        """Cosine similarity between this factorized tensor and the original model's tensor."""
         wl, wr = original.w_lr[0].unbind()
         wl, wr = wl @ original.w_e, wr @ original.w_e
         target = einsum(original.w_u, wl, wr, "c o, o i, o j -> c i j")
